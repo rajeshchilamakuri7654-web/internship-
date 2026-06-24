@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { ToastContainer } from './ToastContainer';
 import { PushNotificationManager } from './PushNotificationManager';
+import { VoiceAgent } from './VoiceAgent';
 
 interface LayoutProps {
   title?: string;
@@ -23,6 +24,7 @@ export function Layout({ title = 'Dashboard' }: LayoutProps) {
       </div>
       <ToastContainer />
       <PushNotificationManager />
+      <VoiceAgent />
     </div>
   );
 }
