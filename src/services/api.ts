@@ -47,9 +47,9 @@ const getInitialState = () => ({
     { id: 'ch3', name: 'Olivia Davis', age: 5, gender: 'female', classroom_name: 'Rainbow Room', parent_name: 'Karen Davis', parent_contact: '+1-555-0103', notes: 'Loves reading.', risk_level: 'low', allergies: [] },
   ],
   meals: [
-    { id: 'm1', name: 'Peanut Butter Sandwich', meal_type: 'lunch', ingredients: 'bread, peanut butter, jelly', description: 'Classic PB&J' },
-    { id: 'm2', name: 'Mac and Cheese', meal_type: 'lunch', ingredients: 'macaroni, cheddar cheese, milk', description: 'Creamy mac and cheese' },
-    { id: 'm3', name: 'Fresh Fruit Salad', meal_type: 'snack', ingredients: 'apple, banana, grapes', description: 'Mixed fruits' },
+    { id: 'm1', name: 'Peanut Butter Sandwich', meal_type: 'lunch', ingredients: ['bread', 'peanut butter', 'jelly'], description: 'Classic PB&J' },
+    { id: 'm2', name: 'Mac and Cheese', meal_type: 'lunch', ingredients: ['macaroni', 'cheddar cheese', 'milk'], description: 'Creamy mac and cheese' },
+    { id: 'm3', name: 'Fresh Fruit Salad', meal_type: 'snack', ingredients: ['apple', 'banana', 'grapes'], description: 'Mixed fruits' },
   ],
   meal_assignments: [
     { id: 'ma1', meal_id: 'm3', meal_name: 'Fresh Fruit Salad', meal_type: 'snack', classroom_id: 'c1', classroom_name: 'Sunflower Room', assigned_date: new Date().toISOString().split('T')[0] },
@@ -65,13 +65,31 @@ const getInitialState = () => ({
 });
 
 const getDb = () => {
-  const db = localStorage.getItem('allergyguard_db');
+  const dbStr = localStorage.getItem('allergyguard_db');
+  let db: any = null;
+  
+  if (dbStr) {
+    try {
+      db = JSON.parse(dbStr);
+      // Auto-migrate old string-based ingredients to arrays if found in cache
+      if (db.meals && db.meals.length > 0 && typeof db.meals[0].ingredients === 'string') {
+        db.meals = db.meals.map((m: any) => ({
+          ...m,
+          ingredients: typeof m.ingredients === 'string' ? m.ingredients.split(',').map((s: string) => s.trim()) : m.ingredients
+        }));
+        localStorage.setItem('allergyguard_db', JSON.stringify(db));
+      }
+    } catch (e) {
+      db = null;
+    }
+  }
+
   if (!db) {
     const initial = getInitialState();
     localStorage.setItem('allergyguard_db', JSON.stringify(initial));
     return initial;
   }
-  return JSON.parse(db);
+  return db;
 };
 
 const saveDb = (state: any) => {
