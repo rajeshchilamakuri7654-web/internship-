@@ -23,7 +23,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/#/login';
     }
     return Promise.reject(error);
   }
@@ -333,12 +333,16 @@ const handleMockRequest = async (config: any) => {
 const defaultAdapter = api.defaults.adapter;
 
 api.defaults.adapter = async (config) => {
-  const isStaticDeploy = window.location.hostname.includes('github.io') || 
-                         window.location.hostname.includes('vercel.app') || 
-                         window.location.hostname.includes('netlify.app') ||
-                         window.location.search.includes('mock=true');
+  // Use mock on all static/frontend-only hosts (GitHub Pages, Vercel, Netlify)
+  // or if explicitly requested via ?mock=true, or if no backend URL is configured
+  const isStaticDeploy =
+    window.location.hostname.includes('github.io') ||
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('netlify.app') ||
+    window.location.search.includes('mock=true') ||
+    !import.meta.env.VITE_API_URL;
 
-  if (isStaticDeploy && !import.meta.env.VITE_API_URL) {
+  if (isStaticDeploy) {
     return handleMockRequest(config);
   }
 
